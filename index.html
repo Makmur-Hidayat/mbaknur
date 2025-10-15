@@ -89,7 +89,7 @@
 
   <script>
     // =========================================================================
-    // URL DEPLOYMENT APPS SCRIPT ANDA
+    // URL DEPLOYMENT APPS SCRIPT ANDA (SUDAH DIMASUKKAN)
     // =========================================================================
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDuZTamQ74Nzt5E239CJoDqsKcNnLnZ7i9hKDK7lcsGnjUUX3ksWWzfwaYj44e2jPk/exec';
     
@@ -104,7 +104,7 @@
             return createRunner(handler, failureHandler);
           },
           withFailureHandler: function(handler) {
-            return createRunner(successHandler, handler);
+            return createRunner(successHandler, failureHandler);
           },
           withUserObject: function(userObject) {
             return createRunner(successHandler, failureHandler);
@@ -145,23 +145,16 @@
     
     // Bind Shim functions
     const runner = window.google.script.run;
-    for (const key in runner) {
-        if (typeof runner[key] === 'function' && key.indexOf('with') === -1) {
-            window.google.script.run[key] = runner.__noSuchMethod__.bind(runner, key);
-        }
-    }
-    // Bind standard functions like run.functionName()
-    window.google.script.run.checkSession = runner.__noSuchMethod__.bind(runner, 'checkSession');
-    window.google.script.run.processLogin = runner.__noSuchMethod__.bind(runner, 'processLogin');
-    window.google.script.run.serverLogout = runner.__noSuchMethod__.bind(runner, 'serverLogout');
-    window.google.script.run.getKlubData = runner.__noSuchMethod__.bind(runner, 'getKlubData');
-    window.google.script.run.saveKlubData = runner.__noSuchMethod__.bind(runner, 'saveKlubData');
-    window.google.script.run.getTimData = runner.__noSuchMethod__.bind(runner, 'getTimData');
-    window.google.script.run.saveTimEntry = runner.__noSuchMethod__.bind(runner, 'saveTimEntry');
-    window.google.script.run.deleteTimEntry = runner.__noSuchMethod__.bind(runner, 'deleteTimEntry');
+    const functionsToBind = [
+        'checkSession', 'processLogin', 'serverLogout', 'getKlubData', 
+        'saveKlubData', 'getTimData', 'saveTimEntry', 'deleteTimEntry'
+    ];
+    functionsToBind.forEach(funcName => {
+        window.google.script.run[funcName] = runner.__noSuchMethod__.bind(runner, funcName);
+    });
     
     // =========================================================================
-    // LOGIKA CLIENT (SAMA SEPERTI SEBELUMNYA)
+    // LOGIKA CLIENT
     // =========================================================================
 
     const APP_CONTAINER = document.getElementById('app-container');
@@ -192,7 +185,7 @@
         .withFailureHandler(error => {
             showLoading(false);
             console.error('Initial check failed:', error);
-            M.toast({html: 'Gagal terhubung ke server Apps Script. Cek koneksi & Deployment ID.', classes: 'red'});
+            M.toast({html: 'Gagal terhubung ke server Apps Script. Cek koneksi & Deployment.', classes: 'red'});
             renderLoginPage();
         })
         .checkSession(token);
@@ -498,7 +491,8 @@
                     const input = document.getElementById(`tim-${key}`); 
                     if (input) {
                         input.value = data[key] || '';
-                        input.nextElementSibling.classList.add('active'); 
+                        // HACK: Pastikan label aktif agar terlihat saat nilai sudah ada.
+                        if (input.nextElementSibling) input.nextElementSibling.classList.add('active'); 
                     }
                 });
 
