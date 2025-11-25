@@ -1,567 +1,783 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Askab PSSI Mentawai</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line-up Interaktif Sepakbola</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* General & Layout */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            padding-bottom: 80px;
+        }
 
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-  
-  <style>
-    body {
-      display: flex;
-      min-height: 100vh;
-      flex-direction: column;
-      background-color: #f4f4f4;
-    }
-    main {
-      flex: 1 0 auto;
-      padding-top: 20px;
-    }
-    .card-login {
-      margin-top: 10%;
-    }
-    /* Mobile optimization */
-    @media only screen and (max-width: 600px) {
-      .card-login {
-        margin-top: 20px;
-      }
-      .container {
-        width: 95% !important;
-      }
-    }
-    /* Loading screen */
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      z-index: 1000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .data-table-container {
-      overflow-x: auto;
-      margin-top: 20px;
-    }
-  </style>
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        /* Form Controls */
+        .control-panel, .substitutes-section {
+            padding: 10px 20px;
+            margin-top: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 3px;
+            font-size: 0.9em;
+        }
+
+        select, input[type="date"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9em;
+        }
+
+        /* Pitch Styling */
+        .pitch-container {
+            padding: 10px;
+            background-color: #e9ecef;
+        }
+
+        .pitch {
+            position: relative;
+            width: 100%;
+            padding-bottom: 150%;
+            background-color: #4CAF50;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.1) 50%, transparent 50%),
+                              linear-gradient(to bottom, transparent 50%, #5cb85c 50%);
+            background-size: 20% 100%, 100% 10%;
+            border: 5px solid white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            margin: 0 auto;
+            max-width: 400px;
+        }
+
+        .pitch::before, .pitch::after {
+            /* Pitch Lines (defined previously) */
+            content: '';
+            position: absolute;
+        }
+        
+        .pitch::before { top: 50%; left: 0; right: 0; height: 2px; background: white; }
+        .pitch::after { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border: 2px solid white; border-radius: 50%; }
+
+        /* Player Styling (Interactive) */
+        #player-lineup {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .player {
+            position: absolute;
+            background-color: #007bff; /* Blue */
+            color: white;
+            width: 65px; 
+            height: 65px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            border: 2px solid white;
+            cursor: pointer; /* Key change: makes it clickable */
+            transform: translate(-50%, -50%);
+            font-size: 0.8em;
+            line-height: 1.1;
+            z-index: 10;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        
+        .player.empty {
+            background-color: #6c757d; /* Gray for empty slot */
+            border: 2px dashed #ccc;
+        }
+        
+        .player:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .player-number {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .player-name {
+            font-size: 0.7em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Substitutes Section */
+        .substitutes-section {
+            margin: 20px;
+        }
+        
+        .sub-card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .substitute-card {
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            flex-basis: calc(50% - 5px); /* 2 per row on mobile */
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        
+        .substitute-card:hover {
+            border-color: #007bff;
+        }
+
+        .sub-number {
+            font-weight: 700;
+            font-size: 1.2em;
+            color: #d9534f;
+            padding-right: 15px;
+        }
+
+        .sub-name, .sub-position {
+            font-size: 0.9em;
+        }
+
+        .sub-age {
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+        
+        .add-sub-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Modal (Player Selection Pop-up) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s;
+        }
+        
+        .player-list-item {
+            padding: 10px;
+            border-bottom: 1px dashed #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .player-list-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        /* PDF Button & Print Media */
+        .pdf-button-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background-color: #343a40;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 20;
+        }
+
+        #download-pdf-btn {
+            width: 90%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        @media print {
+            .pdf-button-container, .control-panel, .modal, .add-sub-btn, .remove-btn {
+                display: none;
+            }
+            body { background-color: white; }
+            .pitch { border-color: #333; box-shadow: none; }
+            header { box-shadow: none; }
+            .substitute-card { flex-basis: 30%; } /* Better layout for print */
+        }
+
+        /* Large Screen Adjustments */
+        @media (min-width: 600px) {
+            main {
+                display: flex;
+                max-width: 900px;
+                margin: 0 auto;
+                gap: 20px;
+            }
+            .control-panel {
+                order: 1;
+                flex: 1;
+                height: fit-content;
+            }
+            .pitch-container {
+                order: 2;
+                flex: 1;
+            }
+            .substitutes-section {
+                order: 3;
+                flex: 2;
+            }
+            .pitch {
+                max-width: none;
+                padding-bottom: 75%;
+            }
+            .sub-card-container {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+            }
+            .substitute-card {
+                flex-basis: 30%; /* 3-4 per row on desktop */
+                min-width: 150px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <div id="app-container">
-    <div id="loading-overlay">
-      <div class="preloader-wrapper big active">
-        <div class="spinner-layer spinner-blue-only">
-          <div class="circle-clipper left">
-            <div class="circle"></div>
-          </div><div class="gap-patch">
-            <div class="circle"></div>
-          </div><div class="circle-clipper right">
-            <div class="circle"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <header id="header">
+        <h1>Line-up Tim **<span id="klub-name">Pilih Klub</span>**</h1>
+        <p>Tanggal Pertandingan: <span id="match-date-display">YYYY-MM-DD</span></p>
+        <p>Formasi: <span id="formation-display">--</span></p>
+    </header>
 
-  <div id="tim-modal" class="modal">
-    <div class="modal-content">
-      <h4><span id="modal-title">Tambah</span> Anggota Tim</h4>
-      <form id="tim-form-entry">
-        <input type="hidden" name="idtime" id="tim-idtime"> 
-        <div id="tim-form-fields" class="row">
-        </div>
-        <div class="modal-footer">
-          <button class="btn waves-effect waves-light teal" type="submit">
-            <i class="material-icons left">save</i> Simpan
-          </button>
-          <a href="#!" class="modal-close waves-effect waves-green btn-flat">Batal</a>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
-  <script>
-    // =========================================================================
-    // URL DEPLOYMENT APPS SCRIPT ANDA (SUDAH DIMASUKKAN)
-    // =========================================================================
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9q5DnZxFO214bMvJIljlQoHZn3jGkX6KWi-smyIcJi1IJDsYt5SmQlmVqWWksIcgq/exec';
-    
-    // =========================================================================
-    // SHIM UNTUK GOOGLE.SCRIPT.RUN (MEMUNGKINKAN KOMUNIKASI DARI GITHUB)
-    // =========================================================================
-    window.google = window.google || {};
-    window.google.script = {
-      run: (function() {
-        const createRunner = (successHandler, failureHandler) => ({
-          withSuccessHandler: function(handler) {
-            return createRunner(handler, failureHandler);
-          },
-          withFailureHandler: function(handler) {
-            return createRunner(successHandler, failureHandler);
-          },
-          withUserObject: function(userObject) {
-            return createRunner(successHandler, failureHandler);
-          },
-          
-          __noSuchMethod__: function(name, args) {
-            const data = {
-              func: name,
-              params: args || []
-            };
-
-            fetch(APPS_SCRIPT_URL, {
-              method: 'POST',
-              body: JSON.stringify(data),
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            })
-            .then(response => response.json())
-            .then(result => {
-              if (result.error) {
-                if (failureHandler) failureHandler(result.error);
-                else console.error('Apps Script Error:', result.error);
-              } else {
-                if (successHandler) successHandler(result.response);
-              }
-            })
-            .catch(error => {
-              if (failureHandler) failureHandler(error);
-              else console.error('Fetch Error:', error);
-            });
-          }
-        });
-        
-        return createRunner();
-      })()
-    };
-    
-    // Bind Shim functions
-    const runner = window.google.script.run;
-    const functionsToBind = [
-        'checkSession', 'processLogin', 'serverLogout', 'getKlubData', 
-        'saveKlubData', 'getTimData', 'saveTimEntry', 'deleteTimEntry'
-    ];
-    functionsToBind.forEach(funcName => {
-        window.google.script.run[funcName] = runner.__noSuchMethod__.bind(runner, funcName);
-    });
-    
-    // =========================================================================
-    // LOGIKA CLIENT
-    // =========================================================================
-
-    const APP_CONTAINER = document.getElementById('app-container');
-    const LOADING_OVERLAY = document.getElementById('loading-overlay');
-    const TOKEN_KEY = 'askab_session_token';
-    let timHeadersMap = {}; 
-
-    document.addEventListener('DOMContentLoaded', initApp);
-
-    function showLoading(show) {
-      LOADING_OVERLAY.style.display = show ? 'flex' : 'none';
-    }
-
-    // --- Inisialisasi Aplikasi dan Cek Sesi ---
-    function initApp() {
-      const token = localStorage.getItem(TOKEN_KEY);
-      showLoading(true);
-      
-      google.script.run
-        .withSuccessHandler(response => {
-          showLoading(false);
-          if (response.status === 'loggedIn') {
-            renderDashboard(response.username);
-          } else {
-            renderLoginPage();
-          }
-        })
-        .withFailureHandler(error => {
-            showLoading(false);
-            console.error('Initial check failed:', error);
-            M.toast({html: 'Gagal terhubung ke server Apps Script. Cek koneksi & Deployment.', classes: 'red'});
-            renderLoginPage();
-        })
-        .checkSession(token);
-    }
-    
-    function renderLoginPage() {
-      APP_CONTAINER.innerHTML = `
-        <div class="container" style="max-width: 400px;">
-          <div class="card card-login">
-            <div class="card-content">
-              <span class="card-title center-align teal-text">Login Askab PSSI</span>
-              <form id="login-form">
-                <div class="input-field">
-                  <input id="username" type="text" name="username" required>
-                  <label for="username">Username</label>
-                </div>
-                <div class="input-field">
-                  <input id="password" type="password" name="password" required>
-                  <label for="password">Password</label>
-                </div>
-                <button class="btn waves-effect waves-light teal lighten-1 col s12" type="submit">Login</button>
-              </form>
+    <main>
+        <div class="control-panel">
+            <h2>Detail Pertandingan</h2>
+            <div class="form-group">
+                <label for="club-select">Pilih Klub:</label>
+                <select id="club-select" onchange="handleClubChange()"></select>
             </div>
-          </div>
+            
+            <div class="form-group">
+                <label for="formation-select">Pilih Formasi:</label>
+                <select id="formation-select" onchange="handleFormationChange()"></select>
+            </div>
+            
+            <div class="form-group">
+                <label for="match-date-input">Tanggal Pertandingan:</label>
+                <input type="date" id="match-date-input" onchange="updateMatchInfo()">
+            </div>
+            
+             <div class="form-group">
+                <label for="lawan-input">Lawan:</label>
+                <input type="text" id="lawan-input" placeholder="Nama Klub Lawan" onchange="updateMatchInfo()">
+            </div>
         </div>
-      `;
-      attachLoginListener();
-    }
-
-    function attachLoginListener() {
-      const form = document.getElementById('login-form');
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
         
-        const formData = {
-          username: form.username.value,
-          password: form.password.value
+        <div class="pitch-container">
+            <div class="pitch">
+                <div id="player-lineup">
+                    </div>
+            </div>
+            [attachment_0](attachment)
+        </div>
+    </main>
+    
+    <section class="substitutes-section">
+        <h2>Pemain Cadangan</h2>
+        <div id="substitutes-list" class="sub-card-container">
+            </div>
+        <button class="add-sub-btn" onclick="openPlayerSelectionModal(true, 'NEW_SUB')">+ Tambah Pemain Cadangan</button>
+    </section>
+
+    <div id="playerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePlayerSelectionModal()">&times;</span>
+            <h3 id="modal-title">Pilih Pemain</h3>
+            <div id="modal-player-list">
+                </div>
+            <button id="removePlayerBtn" class="remove-btn" onclick="removePlayer()">Hapus Pemain dari Slot</button>
+        </div>
+    </div>
+
+    <div class="pdf-button-container">
+        <button id="download-pdf-btn" onclick="window.print()">
+            📥 Unduh Line-up (PDF)
+        </button>
+    </div>
+
+    <script>
+        // --- DATA SECTION ---
+        
+        // Data pemain lengkap, di luar struktur line-up
+        const dataPemainLengkap = {
+            "klubA": [
+                { id: 1, nama_pemain: "Abdurrahman", nama_punggung: "RAHMAN", tanggal_lahir: "1992-11-23", posisi_primer: "Kiper", no_punggung: 1 },
+                { id: 2, nama_pemain: "Bambang G.", nama_punggung: "BAMBANG", tanggal_lahir: "1995-03-15", posisi_primer: "Bek", no_punggung: 2 },
+                { id: 3, nama_pemain: "Charlie P.", nama_punggung: "CHARLIE", tanggal_lahir: "1990-05-20", posisi_primer: "Bek", no_punggung: 5 },
+                { id: 4, nama_pemain: "Dedi I.", nama_punggung: "DEDI", tanggal_lahir: "1998-01-10", posisi_primer: "Bek", no_punggung: 4 },
+                { id: 5, nama_pemain: "Eko S.", nama_punggung: "EKO", tanggal_lahir: "1997-07-25", posisi_primer: "Bek", no_punggung: 3 },
+                { id: 6, nama_pemain: "Fadil M.", nama_punggung: "FADIL", tanggal_lahir: "1996-09-01", posisi_primer: "Gelandang", no_punggung: 6 },
+                { id: 7, nama_pemain: "Gatot K.", nama_punggung: "GATOT", tanggal_lahir: "1993-04-12", posisi_primer: "Gelandang", no_punggung: 8 },
+                { id: 8, nama_pemain: "Hendra L.", nama_punggung: "HENDRA", tanggal_lahir: "1999-10-30", posisi_primer: "Gelandang", no_punggung: 10 },
+                { id: 9, nama_pemain: "Irfan B.", nama_punggung: "IRFAN", tanggal_lahir: "2000-02-05", posisi_primer: "Penyerang", no_punggung: 7 },
+                { id: 10, nama_pemain: "Joko A.", nama_punggung: "JOKO", tanggal_lahir: "1994-06-18", posisi_primer: "Penyerang", no_punggung: 9 },
+                { id: 11, nama_pemain: "Kurniawan", nama_punggung: "KURNI", tanggal_lahir: "2001-12-03", posisi_primer: "Penyerang", no_punggung: 11 },
+                { id: 12, nama_pemain: "Lutfi H.", nama_punggung: "LUTFI", tanggal_lahir: "1991-08-08", posisi_primer: "Kiper", no_punggung: 12 },
+                { id: 13, nama_pemain: "Maman", nama_punggung: "MAMAN", tanggal_lahir: "2002-03-22", posisi_primer: "Bek", no_punggung: 13 },
+                { id: 14, nama_pemain: "Nabil F.", nama_punggung: "NABIL", tanggal_lahir: "1997-11-11", posisi_primer: "Gelandang", no_punggung: 14 },
+                { id: 15, nama_pemain: "Oka", nama_punggung: "OKA", tanggal_lahir: "2003-01-01", posisi_primer: "Penyerang", no_punggung: 15 },
+            ],
+            "klubB": [
+                { id: 101, nama_pemain: "Zainal A.", nama_punggung: "ZAENAL", tanggal_lahir: "1991-01-01", posisi_primer: "Kiper", no_punggung: 1 },
+                { id: 102, nama_pemain: "Yusuf K.", nama_punggung: "YUSUF", tanggal_lahir: "1993-02-15", posisi_primer: "Bek", no_punggung: 22 },
+                { id: 103, nama_pemain: "Xavier M.", nama_punggung: "XAVIER", tanggal_lahir: "1990-12-25", posisi_primer: "Bek", no_punggung: 4 },
+                { id: 104, nama_pemain: "Wawan S.", nama_punggung: "WAWAN", tanggal_lahir: "1995-05-10", posisi_primer: "Bek", no_punggung: 5 },
+                { id: 105, nama_pemain: "Viktor P.", nama_punggung: "VIKTOR", tanggal_lahir: "1996-08-01", posisi_primer: "Bek", no_punggung: 6 },
+                { id: 106, nama_pemain: "Umar D.", nama_punggung: "UMAR", tanggal_lahir: "1994-04-18", posisi_primer: "Bek", no_punggung: 3 },
+                { id: 107, nama_pemain: "Taufik H.", nama_punggung: "TAUFIK", tanggal_lahir: "1998-07-20", posisi_primer: "Gelandang", no_punggung: 17 },
+                { id: 108, nama_pemain: "Samudra A.", nama_punggung: "SAMUDR", tanggal_lahir: "1999-03-03", posisi_primer: "Gelandang", no_punggung: 8 },
+                { id: 109, nama_pemain: "Rudi R.", nama_punggung: "RUDI", tanggal_lahir: "1997-10-10", posisi_primer: "Gelandang", no_punggung: 10 },
+                { id: 110, nama_pemain: "Qasim B.", nama_punggung: "QASIM", tanggal_lahir: "2000-11-20", posisi_primer: "Gelandang", no_punggung: 19 },
+                { id: 111, nama_pemain: "Purnama J.", nama_punggung: "PURNAMA", tanggal_lahir: "2001-06-05", posisi_primer: "Penyerang", no_punggung: 9 },
+                { id: 112, nama_pemain: "Oscar D.", nama_punggung: "OSCAR", tanggal_lahir: "1992-09-09", posisi_primer: "Gelandang", no_punggung: 14 },
+                { id: 113, nama_pemain: "Nino S.", nama_punggung: "NINO", tanggal_lahir: "2003-01-01", posisi_primer: "Penyerang", no_punggung: 15 },
+                { id: 114, nama_pemain: "Miranda L.", nama_punggung: "MIRANDA", tanggal_lahir: "2002-04-05", posisi_primer: "Bek", no_punggung: 16 },
+            ],
+        };
+        
+        // Data Formasi yang tersedia
+        const dataFormasi = ["4-3-3", "4-4-2", "5-3-2", "3-4-3", "5-4-1"];
+
+        // State Global Aplikasi (Line-up yang sedang dibangun)
+        let currentState = {
+            activeKlubId: "",
+            namaKlub: "",
+            lawan: "",
+            tanggal: "",
+            formasi: "4-3-3",
+            starters: [], // Array objek: { key: 'G1', playerId: 1, ... }
+            substitutes: [], // Array objek: { playerId: 12, ... }
         };
 
-        showLoading(true);
-        google.script.run
-          .withSuccessHandler(response => {
-            showLoading(false);
-            if (response.success) {
-              localStorage.setItem(TOKEN_KEY, response.token); 
-              M.toast({html: `Selamat datang, ${response.username}!`, classes: 'green'});
-              renderDashboard(response.username);
-            } else {
-              M.toast({html: response.message, classes: 'red'});
+        // Pointer untuk modal: key posisi (misal: 'D1') atau penanda untuk cadangan ('NEW_SUB' atau Index)
+        let selectedPositionKey = null; 
+
+        // --- UTILITY FUNCTIONS ---
+
+        function hitungUmur(dateString) {
+            const today = new Date();
+            const birthDate = new Date(dateString);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDifference = today.getMonth() - birthDate.getMonth();
+            if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
             }
-          })
-          .withFailureHandler(error => {
-              showLoading(false);
-              M.toast({html: 'Koneksi error: Gagal Login.', classes: 'red'});
-              console.error(error);
-          })
-          .processLogin(formData);
-      });
-    }
-    
-    window.logout = function() {
-      const token = localStorage.getItem(TOKEN_KEY);
-      showLoading(true);
-      google.script.run
-        .withSuccessHandler(response => {
-          localStorage.removeItem(TOKEN_KEY);
-          showLoading(false);
-          M.toast({html: 'Logout berhasil', classes: 'green'});
-          renderLoginPage();
-        })
-        .withFailureHandler(error => {
-            showLoading(false);
-            M.toast({html: 'Koneksi error saat logout.', classes: 'red'});
-            console.error(error);
-            localStorage.removeItem(TOKEN_KEY);
-            renderLoginPage();
-        })
-        .serverLogout(token);
-    }
-    
-    function renderDashboard(username) {
-        APP_CONTAINER.innerHTML = `
-          <header>
-            <nav class="teal lighten-1">
-              <div class="nav-wrapper container">
-                <a href="#" class="brand-logo">ASKAB</a>
-                <ul id="nav-mobile" class="right hide-on-med-and-down">
-                  <li>Selamat datang, <span id="username-display">${username}</span></li>
-                  <li><a href="#!" onclick="logout()">Logout</a></li>
-                </ul>
-                <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-              </div>
-            </nav>
-            <div class="container">
-              <ul class="tabs tabs-fixed-width tab-demo z-depth-1">
-                <li class="tab col s6"><a class="active" href="#klub-section">Data Klub</a></li>
-                <li class="tab col s6"><a href="#tim-section">Data Tim</a></li>
-              </ul>
-            </div>
-          </header>
-
-          <main class="container">
-            <div id="klub-section" class="col s12">
-              <h5>Data Klub Anda</h5>
-              <div class="card">
-                <div class="card-content">
-                  <form id="klub-form">
-                  </form>
-                  <div class="card-action">
-                    <button class="btn waves-effect waves-light teal" type="submit" form="klub-form">
-                      <i class="material-icons left">save</i> Simpan
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div id="tim-section" class="col s12">
-              <h5>Manajemen Anggota Tim</h5>
-              <a class="waves-effect waves-light btn modal-trigger teal" href="#tim-modal" id="add-tim-btn">
-                  <i class="material-icons left">add</i> Tambah Tim
-              </a>
-              <div class="data-table-container">
-                <table class="striped responsive-table" id="tim-table">
-                  <thead></thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </main>
-        `;
-        initDashboard();
-    }
-    
-    function initDashboard() {
-      M.Tabs.init(document.querySelector('.tabs'));
-      M.Modal.init(document.querySelectorAll('.modal'));
-      
-      loadKlubForm();
-      loadTimTable();
-
-      document.getElementById('klub-form').addEventListener('submit', handleSaveKlub);
-      document.getElementById('tim-form-entry').addEventListener('submit', handleSaveTim);
-      
-      document.getElementById('add-tim-btn').addEventListener('click', () => {
-          resetTimForm();
-          document.getElementById('modal-title').textContent = 'Tambah';
-          M.Modal.getInstance(document.getElementById('tim-modal')).open();
-      });
-    }
-
-    // --- Klub Fungsionalitas ---
-    function loadKlubForm() {
-      showLoading(true);
-      const token = localStorage.getItem(TOKEN_KEY);
-      google.script.run
-        .withSuccessHandler(response => {
-          showLoading(false);
-          if (response.error) { M.toast({html: response.error, classes: 'red'}); return; }
-          
-          const form = document.getElementById('klub-form');
-          form.innerHTML = '';
-          
-          const fields = Object.keys(response.data);
-          const klubHeaders = response.headers;
-          
-          fields.forEach(key => {
-            if (key === 'username' || key === 'idklub') return; 
-
-            const headerIndex = klubHeaders.map(h => h.toLowerCase().replace(/\s/g, '')).indexOf(key);
-            const labelText = headerIndex !== -1 ? klubHeaders[headerIndex] : key;
-
-            const inputHtml = `
-              <div class="input-field col s12 m6">
-                <input id="klub-${key}" name="${key}" type="text" value="${response.data[key] || ''}" ${response.hasKlub ? '' : 'required'}>
-                <label for="klub-${key}" class="${response.data[key] ? 'active' : ''}">${labelText}</label>
-              </div>
-            `;
-            form.insertAdjacentHTML('beforeend', inputHtml);
-          });
-          
-          M.updateTextFields(); 
-        })
-        .withFailureHandler(error => {
-            showLoading(false);
-            M.toast({html: 'Gagal memuat data klub.', classes: 'red'});
-            console.error(error);
-        })
-        .getKlubData(token);
-    }
-
-    function handleSaveKlub(e) {
-        e.preventDefault();
-        showLoading(true);
-        const token = localStorage.getItem(TOKEN_KEY);
-        const formData = {};
-        const form = e.target;
-        
-        new FormData(form).forEach((value, key) => formData[key] = value);
-
-        google.script.run
-          .withSuccessHandler(response => {
-            showLoading(false);
-            M.toast({html: response.message, classes: response.success ? 'green' : 'red'});
-            if (response.success) loadKlubForm();
-          })
-          .withFailureHandler(error => {
-              showLoading(false);
-              M.toast({html: 'Gagal menyimpan data klub.', classes: 'red'});
-              console.error(error);
-          })
-          .saveKlubData(formData, token);
-    }
-
-    // --- Tim Fungsionalitas ---
-    function loadTimTable() {
-      showLoading(true);
-      const token = localStorage.getItem(TOKEN_KEY);
-      google.script.run
-        .withSuccessHandler(response => {
-          showLoading(false);
-          if (response.error) { M.toast({html: response.error, classes: 'red'}); return; }
-          
-          timHeadersMap = {};
-          response.headers.forEach(h => {
-              timHeadersMap[h.toLowerCase().replace(/\s/g, '')] = h;
-          });
-          
-          renderTimTable(response.data, response.headers);
-          renderTimModalFields(response.headers);
-        })
-        .withFailureHandler(error => {
-            showLoading(false);
-            M.toast({html: 'Gagal memuat data tim.', classes: 'red'});
-            console.error(error);
-        })
-        .getTimData(token);
-    }
-    
-    function renderTimModalFields(headers) {
-        const modalBody = document.getElementById('tim-form-fields');
-        modalBody.innerHTML = '';
-        
-        headers.forEach(header => {
-            const key = header.toLowerCase().replace(/\s/g, '');
-            if (key === 'idklub' || key === 'idtime') return; 
-            
-            const inputHtml = `
-              <div class="input-field col s12 m6">
-                <input id="tim-${key}" name="${key}" type="text">
-                <label for="tim-${key}">${header}</label>
-              </div>
-            `;
-            modalBody.insertAdjacentHTML('beforeend', inputHtml);
-        });
-    }
-
-    function renderTimTable(data, headers) {
-      const tableHead = document.querySelector('#tim-table thead');
-      const tableBody = document.querySelector('#tim-table tbody');
-      tableHead.innerHTML = '';
-      tableBody.innerHTML = '';
-      
-      const displayHeaders = headers.filter(h => {
-          const key = h.toLowerCase().replace(/\s/g, '');
-          return key !== 'idklub' && key !== 'idtime';
-      });
-
-      let headHtml = '<tr>';
-      displayHeaders.forEach(h => headHtml += `<th>${h}</th>`);
-      headHtml += '<th>Aksi</th></tr>';
-      tableHead.innerHTML = headHtml;
-
-      data.forEach(item => {
-        let rowHtml = '<tr>';
-        
-        displayHeaders.forEach(h => {
-            const key = h.toLowerCase().replace(/\s/g, '');
-            rowHtml += `<td>${item[key] || '-'}</td>`;
-        });
-        
-        rowHtml += `<td>
-          <a href="#!" class="btn-small orange" onclick="editTim('${item.idtime}')"><i class="material-icons">edit</i></a>
-          <a href="#!" class="btn-small red" onclick="confirmDeleteTim('${item.idtime}')"><i class="material-icons">delete</i></a>
-        </td></tr>`;
-        tableBody.insertAdjacentHTML('beforeend', rowHtml);
-      });
-    }
-    
-    window.editTim = function(idTim) {
-        resetTimForm();
-        const token = localStorage.getItem(TOKEN_KEY);
-        showLoading(true);
-
-        google.script.run.withSuccessHandler(response => {
-            showLoading(false);
-            const data = response.data.find(item => item.idtime.toString() === idTim.toString());
-            if (data) {
-                document.getElementById('modal-title').textContent = 'Edit';
-                document.getElementById('tim-idtime').value = data.idtime;
-                
-                Object.keys(timHeadersMap).forEach(key => {
-                    const input = document.getElementById(`tim-${key}`); 
-                    if (input) {
-                        input.value = data[key] || '';
-                        // HACK: Pastikan label aktif agar terlihat saat nilai sudah ada.
-                        if (input.nextElementSibling) input.nextElementSibling.classList.add('active'); 
-                    }
-                });
-
-                M.Modal.getInstance(document.getElementById('tim-modal')).open();
-                M.updateTextFields();
-            } else {
-                M.toast({html: 'Data tidak ditemukan.', classes: 'red'});
-            }
-        }).withFailureHandler(error => {
-            showLoading(false);
-            M.toast({html: 'Gagal memuat data tim untuk edit.', classes: 'red'});
-            console.error(error);
-        }).getTimData(token);
-    }
-    
-    function resetTimForm() {
-        const form = document.getElementById('tim-form-entry');
-        form.reset();
-        document.getElementById('tim-idtime').value = '';
-        form.querySelectorAll('label').forEach(label => label.classList.remove('active'));
-        M.updateTextFields(); 
-    }
-
-    function handleSaveTim(e) {
-        e.preventDefault();
-        showLoading(true);
-        const token = localStorage.getItem(TOKEN_KEY);
-        const formData = {};
-        const form = e.target;
-        
-        new FormData(form).forEach((value, key) => formData[key] = value);
-
-        google.script.run
-          .withSuccessHandler(response => {
-            showLoading(false);
-            M.toast({html: response.message, classes: response.success ? 'green' : 'red'});
-            if (response.success) {
-              M.Modal.getInstance(document.getElementById('tim-modal')).close();
-              loadTimTable();
-            }
-          })
-          .withFailureHandler(error => {
-              showLoading(false);
-              M.toast({html: 'Gagal menyimpan data tim.', classes: 'red'});
-              console.error(error);
-          })
-          .saveTimEntry(formData, token);
-    }
-    
-    window.confirmDeleteTim = function(idTim) {
-        if (confirm('Yakin ingin menghapus data tim ini?')) {
-            showLoading(true);
-            const token = localStorage.getItem(TOKEN_KEY);
-            google.script.run
-              .withSuccessHandler(response => {
-                showLoading(false);
-                M.toast({html: response.message, classes: response.success ? 'green' : 'red'});
-                if (response.success) {
-                  loadTimTable();
-                }
-              })
-              .withFailureHandler(error => {
-                  showLoading(false);
-                  M.toast({html: 'Gagal menghapus data tim.', classes: 'red'});
-                  console.error(error);
-              })
-              .deleteTimEntry(idTim, token);
+            return age;
         }
-    }
-  </script>
+
+        // Mendapatkan detail pemain dari ID
+        function getPlayerDetails(playerId) {
+            if (!currentState.activeKlubId || playerId === null) return null;
+            return dataPemainLengkap[currentState.activeKlubId].find(p => p.id === playerId);
+        }
+
+        // --- INITIALIZATION AND CONTROL FUNCTIONS ---
+        
+        function populateControls() {
+            // Isi Selector Klub
+            const clubSelect = document.getElementById('club-select');
+            clubSelect.innerHTML = '<option value="">-- Pilih Klub --</option>';
+            Object.keys(dataPemainLengkap).forEach(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = (id === "klubA" ? "Klub A - Banteng Merah" : "Klub B - Harimau Putih");
+                clubSelect.appendChild(option);
+            });
+            
+            // Isi Selector Formasi
+            const formasiSelect = document.getElementById('formation-select');
+            formasiSelect.innerHTML = '';
+            dataFormasi.forEach(f => {
+                const option = document.createElement('option');
+                option.value = f;
+                option.textContent = f;
+                formasiSelect.appendChild(option);
+            });
+            formasiSelect.value = currentState.formasi;
+        }
+
+        function handleClubChange() {
+            const newKlubId = document.getElementById('club-select').value;
+            if (newKlubId) {
+                currentState.activeKlubId = newKlubId;
+                currentState.namaKlub = (newKlubId === "klubA" ? "Klub A - Banteng Merah" : "Klub B - Harimau Putih");
+                // Reset line-up dan cadangan saat klub berubah
+                currentState.starters = [];
+                currentState.substitutes = [];
+                
+                // Panggil ulang render untuk mengisi slot kosong
+                renderApp();
+            }
+        }
+        
+        function handleFormationChange() {
+            const newFormasi = document.getElementById('formation-select').value;
+            if (newFormasi) {
+                currentState.formasi = newFormasi;
+                // Formasi berubah, kita harus merender ulang lapangan
+                renderApp();
+            }
+        }
+        
+        function updateMatchInfo() {
+            currentState.tanggal = document.getElementById('match-date-input').value;
+            currentState.lawan = document.getElementById('lawan-input').value;
+            renderHeader();
+        }
+
+        // --- RENDERING FUNCTIONS ---
+        
+        function renderHeader() {
+            document.getElementById('klub-name').textContent = currentState.namaKlub || 'Pilih Klub';
+            document.getElementById('match-date-display').textContent = currentState.tanggal || 'YYYY-MM-DD';
+            document.getElementById('formation-display').textContent = currentState.formasi || '--';
+            
+            // Update Lawan
+            const header = document.getElementById('header').getElementsByTagName('h1')[0];
+            const lawanText = currentState.lawan ? ` vs ${currentState.lawan}` : '';
+            header.innerHTML = `Line-up Tim **<span id="klub-name">${currentState.namaKlub || 'Pilih Klub'}</span>**${lawanText}`;
+        }
+
+        function renderLineup() {
+            const lineupContainer = document.getElementById('player-lineup');
+            lineupContainer.innerHTML = '';
+            
+            if (!currentState.activeKlubId) return;
+
+            const formasiStr = currentState.formasi;
+            const [defendersCount, midfieldersCount, forwardsCount] = formasiStr.split('-').map(Number);
+
+            const yCoordinates = { 'G': 90, 'D': 75, 'M': 45, 'F': 15 };
+            const lineCounts = [
+                { key: 'G', count: 1 }, 
+                { key: 'D', count: defendersCount },
+                { key: 'M', count: midfieldersCount },
+                { key: 'F', count: forwardsCount },
+            ];
+
+            const getXCoords = (count) => {
+                if (count === 1) return [50];
+                const step = 100 / (count + 1); 
+                return Array.from({ length: count }, (_, i) => Math.round(step * (i + 1)));
+            };
+
+            lineCounts.forEach(line => {
+                const xCoords = getXCoords(line.count);
+                const yCoord = yCoordinates[line.key];
+                
+                // Buat slot pemain untuk setiap posisi dalam formasi
+                for (let i = 0; i < line.count; i++) {
+                    const positionKey = `${line.key}${i + 1}`;
+                    const slotData = currentState.starters.find(s => s.key === positionKey) || { key: positionKey, playerId: null };
+                    const player = slotData.playerId ? getPlayerDetails(slotData.playerId) : null;
+                    
+                    const playerDiv = document.createElement('div');
+                    playerDiv.classList.add('player');
+                    playerDiv.dataset.positionKey = positionKey;
+                    playerDiv.onclick = () => openPlayerSelectionModal(false, positionKey);
+                    
+                    if (!player) {
+                        playerDiv.classList.add('empty');
+                        playerDiv.innerHTML = `<span class="player-name">${line.key} ${i + 1}</span><span class="player-number">+</span>`;
+                    } else {
+                        playerDiv.style.backgroundColor = currentState.activeKlubId === 'klubB' ? '#d9534f' : '#007bff';
+                        playerDiv.innerHTML = `
+                            <span class="player-number">${player.no_punggung}</span>
+                            <span class="player-name">${player.nama_punggung.toUpperCase()}</span>
+                        `;
+                        playerDiv.title = `${player.nama_pemain} | Umur: ${hitungUmur(player.tanggal_lahir)} tahun`;
+                    }
+
+                    playerDiv.style.left = `${xCoords[i]}%`;
+                    playerDiv.style.top = `${yCoord}%`;
+                    lineupContainer.appendChild(playerDiv);
+                }
+            });
+        }
+
+        function renderSubstitutes() {
+            const substitutesContainer = document.getElementById('substitutes-list');
+            substitutesContainer.innerHTML = '';
+            
+            if (!currentState.activeKlubId) {
+                substitutesContainer.innerHTML = `<p style="text-align: center; color: #6c757d; width: 100%;">Silakan pilih klub untuk mengelola pemain cadangan.</p>`;
+                return;
+            }
+
+            // Tampilkan kartu cadangan yang sudah dipilih
+            currentState.substitutes.forEach((sub, index) => {
+                const player = getPlayerDetails(sub.playerId);
+                if (!player) return;
+
+                const cardDiv = document.createElement('div');
+                cardDiv.classList.add('substitute-card');
+                cardDiv.onclick = () => openPlayerSelectionModal(true, index);
+                
+                cardDiv.innerHTML = `
+                    <div class="sub-number">${player.no_punggung}</div>
+                    <div class="sub-info">
+                        <div class="sub-name">${player.nama_pemain} (${player.nama_punggung})</div>
+                        <div class="sub-position">Posisi: ${player.posisi_primer}</div>
+                        <div class="sub-age">Umur: **${hitungUmur(player.tanggal_lahir)}** tahun</div>
+                    </div>
+                `;
+                substitutesContainer.appendChild(cardDiv);
+            });
+            
+             if (currentState.substitutes.length === 0) {
+                 substitutesContainer.innerHTML = `<p style="text-align: center; color: #6c757d; width: 100%;">Belum ada pemain cadangan yang ditambahkan.</p>`;
+             }
+        }
+        
+        function renderApp() {
+            renderHeader();
+            renderLineup();
+            renderSubstitutes();
+        }
+
+        // --- MODAL (PLAYER SELECTION) FUNCTIONS ---
+
+        function openPlayerSelectionModal(isSub, keyOrIndex) {
+            if (!currentState.activeKlubId) {
+                alert("Pilih Klub terlebih dahulu.");
+                return;
+            }
+            
+            selectedPositionKey = keyOrIndex;
+            const modal = document.getElementById('playerModal');
+            const playerList = document.getElementById('modal-player-list');
+            const removeBtn = document.getElementById('removePlayerBtn');
+            playerList.innerHTML = '';
+            
+            let currentSelectedPlayerId = null;
+
+            if (isSub) {
+                document.getElementById('modal-title').textContent = keyOrIndex === 'NEW_SUB' ? "Pilih Pemain Cadangan Baru" : `Ubah Pemain Cadangan #${keyOrIndex + 1}`;
+                if (keyOrIndex !== 'NEW_SUB') {
+                    currentSelectedPlayerId = currentState.substitutes[keyOrIndex]?.playerId;
+                    removeBtn.textContent = 'Hapus Pemain Cadangan';
+                    removeBtn.style.display = 'block';
+                } else {
+                    removeBtn.style.display = 'none'; // Tidak bisa menghapus slot cadangan baru
+                }
+            } else { // Starter
+                document.getElementById('modal-title').textContent = `Pilih Pemain Starter (${keyOrIndex})`;
+                currentSelectedPlayerId = currentState.starters.find(s => s.key === keyOrIndex)?.playerId;
+                removeBtn.textContent = 'Hapus Pemain dari Lapangan';
+                removeBtn.style.display = currentSelectedPlayerId ? 'block' : 'none';
+            }
+
+            // Tentukan pemain mana yang sudah TERPILIH (di starter dan cadangan)
+            const usedPlayerIds = new Set([
+                ...currentState.starters.map(s => s.playerId),
+                ...currentState.substitutes.map(s => s.playerId)
+            ].filter(id => id !== null));
+
+            // Kecualikan pemain di slot yang sedang diedit
+            if (currentSelectedPlayerId) {
+                 usedPlayerIds.delete(currentSelectedPlayerId);
+            }
+
+            // Filter pemain: tampilkan HANYA pemain yang belum terpilih
+            const availablePlayers = dataPemainLengkap[currentState.activeKlubId].filter(p => !usedPlayerIds.has(p.id));
+
+            if (availablePlayers.length === 0 && !currentSelectedPlayerId) {
+                 playerList.innerHTML = '<p style="text-align: center;">Semua pemain sudah terpilih atau slot ini sudah terisi. Silakan ganti pemain lain.</p>';
+            }
+
+            availablePlayers.sort((a, b) => a.no_punggung - b.no_punggung).forEach(player => {
+                const item = document.createElement('div');
+                item.classList.add('player-list-item');
+                item.dataset.playerId = player.id;
+                item.onclick = () => selectPlayer(player.id, isSub);
+                
+                item.innerHTML = `
+                    <span>**${player.no_punggung}** - ${player.nama_pemain}</span>
+                    <small>(${player.posisi_primer}, Umur: ${hitungUmur(player.tanggal_lahir)})</small>
+                `;
+                playerList.appendChild(item);
+            });
+
+            modal.style.display = "block";
+        }
+
+        function closePlayerSelectionModal() {
+            document.getElementById('playerModal').style.display = "none";
+            selectedPositionKey = null;
+        }
+
+        /**
+         * Logic untuk memilih pemain ke slot (starter atau cadangan)
+         * @param {number} playerId - ID pemain yang dipilih
+         * @param {boolean} isSub - Apakah ini slot cadangan
+         */
+        function selectPlayer(playerId, isSub) {
+            if (isSub) {
+                if (selectedPositionKey === 'NEW_SUB') { // Tambah cadangan baru
+                    currentState.substitutes.push({ playerId: playerId });
+                } else if (typeof selectedPositionKey === 'number') { // Edit cadangan lama
+                    currentState.substitutes[selectedPositionKey].playerId = playerId;
+                }
+            } else { // Starter
+                let slot = currentState.starters.find(s => s.key === selectedPositionKey);
+                if (slot) {
+                    slot.playerId = playerId; // Update pemain di slot yang sudah ada
+                } else {
+                    // Buat slot baru jika belum ada
+                    currentState.starters.push({ key: selectedPositionKey, playerId: playerId });
+                }
+            }
+            
+            closePlayerSelectionModal();
+            renderApp();
+        }
+
+        /**
+         * Logic untuk menghapus pemain dari slot (starter atau cadangan)
+         */
+        function removePlayer() {
+            if (selectedPositionKey === null) return;
+
+            const isSub = typeof selectedPositionKey !== 'string'; // Starter key is string (e.g., 'D1')
+            
+            if (isSub) {
+                 // Hapus pemain cadangan berdasarkan index
+                 currentState.substitutes.splice(selectedPositionKey, 1);
+            } else {
+                // Hapus pemain starter (atur playerId menjadi null)
+                let slotIndex = currentState.starters.findIndex(s => s.key === selectedPositionKey);
+                if (slotIndex !== -1) {
+                    // Cukup hapus elemen dari array agar slotnya tetap kosong
+                    currentState.starters.splice(slotIndex, 1);
+                }
+            }
+
+            closePlayerSelectionModal();
+            renderApp();
+        }
+
+
+        // --- ENTRY POINT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateControls();
+            
+            // Atur input tanggal ke hari ini sebagai default
+            document.getElementById('match-date-input').valueAsDate = new Date();
+            updateMatchInfo();
+            
+            // Tampilkan instruksi awal
+            renderHeader();
+        });
+        
+        // Menutup modal jika user klik di luar area modal
+        window.onclick = function(event) {
+            const modal = document.getElementById('playerModal');
+            if (event.target === modal) {
+                closePlayerSelectionModal();
+            }
+        }
+    </script>
 </body>
 </html>
